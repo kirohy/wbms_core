@@ -1,0 +1,6 @@
+src_gen
+Makefile
+CMakeFiles
+*.cmake
+.clangd
+compile_commands.json
