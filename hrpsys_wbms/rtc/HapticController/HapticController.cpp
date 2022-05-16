@@ -498,7 +498,7 @@ void HapticController::calcTorque(){
     }
 
 
-    const hrp::dvector max_torque = (hrp::dvector(m_robot->numJoints()) << 20,40,60,60,20,20, 20,40,60,60,20,20, 40, 15,15,10,10,6,4,4,4, 15,15,10,10,6,4,4,4).finished();
+    const hrp::dvector max_torque = (hrp::dvector(m_robot->numJoints()) << 20,40,60,60,20,20, 20,40,60,60,20,20, 40, 15,15,10,10,6,4,4, 15,15,10,10,6,4,4, 4,4).finished(); // Warning
     hrp::dvector j_power_coeff = max_torque/max_torque.maxCoeff(); // reduce gain of light inertia joint
 
     {// calc qref pd control torque

@@ -1,5 +1,11 @@
+msg/OpenHRP_*
+srv/OpenHRP_*
+idl
+src_gen
+*~
 Makefile
 CMakeFiles
 *.cmake
+*.pyc
 .clangd
 compile_commands.json

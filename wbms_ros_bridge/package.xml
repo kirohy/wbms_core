@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>wbms_ros_bridge</name>
+  <version>0.0.0</version>
+  <description>ROS Bridge for wbms</description>
+
+  <maintainer email="yoshioka@jsk.imi.i.u-tokyo.ac.jp">Hiroki Yoshioka</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>libncurses</depend>
+  <depend>libncurses-dev</depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>rtmbuild</depend>
+  <depend>tf</depend>
+  <depend>hrpsys</depend>
+  <depend>hrpsys_wbms</depend>
+
+  <exec_depend>hrpsys_ros_bridge</exec_depend>
+  <exec_depend>hrpsys_ros_bridge_tutorials</exec_depend>
+  <exec_depend>jsk_models</exec_depend>
+  <exec_depend>hrpsys_choreonoid_tutorials</exec_depend>
+</package>
