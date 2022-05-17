@@ -1,0 +1,110 @@
+<launch>
+  <arg name="MODEL_FILE" />
+  <arg name="CONF_FILE" default="" />
+  <arg name="IS_MASTER_SIDE_OF_MASTERSLAVE" default="false" />
+
+  <!-- BEGIN:openrtm setting -->
+  <arg name="nameserver" default="localhost" />
+  <arg name="corbaport" default="15005" />
+  <arg name="managerport" default="2810" />
+  <!-- <arg name="managerport" default="15006" /> -->
+  <!-- available in Kinetic -->
+  <!-- <arg name="managerport" default="$(eval arg('corbaport') + 1)"/> -->
+  <arg name="periodic_rate" default="2000" />
+  <env name="RTCTREE_NAMESERVERS" value="$(arg nameserver):$(arg corbaport)" />
+  <arg name="subscription_type" default="new" />
+  <arg name="push_policy" default="all" />
+  <arg name="push_rate" default="50.0" />
+  <arg name="buffer_length" default="8" />
+  <arg name="OUTPUT" default="screen"/>
+  <env name="LANG" value="C" />
+  <env name="ORBgiopMaxMsgSize" value="2147483648" />
+
+  <!-- BEGIN:openrtm connection -->
+  <arg name="openrtm_args" default='-o "corba.master_manager:$(arg nameserver):$(arg managerport)" -o "corba.nameservers:$(arg nameserver):$(arg corbaport)" -o "naming.formats:%n.rtc" -o "exec_cxt.periodic.type:PeriodicExecutionContext" -o "exec_cxt.periodic.rate:$(arg periodic_rate)" -o "logger.file_name:/tmp/rtc%p.log"' />
+  <env name="subscription_type" value="$(arg subscription_type)" />
+  <env name="push_policy" value="$(arg push_policy)" />
+  <env name="push_rate" value="$(arg push_rate)" />
+  <env name="buffer_length" value="$(arg buffer_length)" />
+  <node name="rtmlaunch_master_slave_ros_bridge" pkg="openrtm_tools" type="rtmlaunch.py" args="$(find whole_body_master_slave)/launch/master_slave_ros_bridge.launch IS_MASTER_SIDE_OF_MASTERSLAVE=$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" output="$(arg OUTPUT)"/>
+
+  <!--
+       WholeBodyMasterSlave
+  -->
+  <group unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)">
+    <node pkg="hrpsys_ros_bridge" name="WholeBodyMasterSlaveServiceROSBridge" type="WholeBodyMasterSlaveServiceROSBridgeComp"
+          output="screen" args ="$(arg openrtm_args)"/>
+    <rtconnect from="WholeBodyMasterSlaveServiceROSBridge.rtc:WholeBodyMasterSlaveService" to="wbms.rtc:WholeBodyMasterSlaveService"  subscription_type="new"/>
+    <rtactivate component="WholeBodyMasterSlaveServiceROSBridge.rtc" />
+  </group>
+
+
+    <!-- Haptic Coltroller HC - Master Slave WBMS -->
+  <arg name="openrtm_args_high" default='-o "corba.master_manager:$(arg nameserver):$(arg managerport)" -o "corba.nameservers:$(arg nameserver):$(arg corbaport)" -o "naming.formats:%n.rtc" -o "exec_cxt.periodic.type:PeriodicExecutionContext" -o "exec_cxt.periodic.rate:1000" -o "logger.file_name:/tmp/rtc%p.log"' />
+  <node pkg="whole_body_master_slave" name="MasterSlaveROSBridge" type="MasterSlaveROSBridge" args="$(arg openrtm_args_high) -o model:'file://$(arg MODEL_FILE)' -o example.MasterSlaveROSBridge.config_file:$(arg CONF_FILE)" output="$(arg OUTPUT)">
+    <param name="is_master_side" type="bool" value="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" />
+  </node>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:teleopOdom"       to="MasterSlaveROSBridge0.rtc:teleopOdom"       subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_lleg_pose" to="MasterSlaveROSBridge0.rtc:master_lleg_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_rleg_pose" to="MasterSlaveROSBridge0.rtc:master_rleg_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_larm_pose" to="MasterSlaveROSBridge0.rtc:master_larm_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_rarm_pose" to="MasterSlaveROSBridge0.rtc:master_rarm_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_com_pose"  to="MasterSlaveROSBridge0.rtc:master_com_pose"  subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_head_pose" to="MasterSlaveROSBridge0.rtc:master_head_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_lhand_pose" to="MasterSlaveROSBridge0.rtc:master_lhand_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_rhand_pose" to="MasterSlaveROSBridge0.rtc:master_rhand_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_lfloor_pose" to="MasterSlaveROSBridge0.rtc:master_lfloor_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_rfloor_pose" to="MasterSlaveROSBridge0.rtc:master_rfloor_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_lleg_wrench" to="MasterSlaveROSBridge0.rtc:master_lleg_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_rleg_wrench" to="MasterSlaveROSBridge0.rtc:master_rleg_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_larm_wrench" to="MasterSlaveROSBridge0.rtc:master_larm_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:master_rarm_wrench" to="MasterSlaveROSBridge0.rtc:master_rarm_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="hc.rtc:delay_check_packet_outbound" to="MasterSlaveROSBridge0.rtc:delay_check_packet_outbound" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_lleg_wrench" to="hc.rtc:slave_lleg_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_rleg_wrench" to="hc.rtc:slave_rleg_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_larm_wrench" to="hc.rtc:slave_larm_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_rarm_wrench" to="hc.rtc:slave_rarm_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_lleg_pose" to="hc.rtc:slave_lleg_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_rleg_pose" to="hc.rtc:slave_rleg_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_larm_pose" to="hc.rtc:slave_larm_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_rarm_pose" to="hc.rtc:slave_rarm_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_com_pose" to="hc.rtc:slave_com_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_head_pose" to="hc.rtc:slave_head_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_lhand_pose" to="hc.rtc:slave_lhand_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_rhand_pose" to="hc.rtc:slave_rhand_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_lfloor_pose" to="hc.rtc:slave_lfloor_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:slave_rfloor_pose" to="hc.rtc:slave_rfloor_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect if="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:delay_check_packet_inbound"  to="hc.rtc:delay_check_packet_inbound"  subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_lleg_pose" to="wbms.rtc:master_lleg_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_rleg_pose" to="wbms.rtc:master_rleg_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_larm_pose" to="wbms.rtc:master_larm_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_rarm_pose" to="wbms.rtc:master_rarm_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_com_pose"  to="wbms.rtc:master_com_pose"  subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_head_pose" to="wbms.rtc:master_head_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_lhand_pose" to="wbms.rtc:master_lhand_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_rhand_pose" to="wbms.rtc:master_rhand_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_lfloor_pose" to="wbms.rtc:master_lfloor_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_rfloor_pose" to="wbms.rtc:master_rfloor_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_lleg_wrench" to="wbms.rtc:master_lleg_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_rleg_wrench" to="wbms.rtc:master_rleg_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_larm_wrench" to="wbms.rtc:master_larm_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:master_rarm_wrench" to="wbms.rtc:master_rarm_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="MasterSlaveROSBridge0.rtc:delay_check_packet_inbound" to="wbms.rtc:delay_check_packet_inbound" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_lleg_wrench" to="MasterSlaveROSBridge0.rtc:slave_lleg_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_rleg_wrench" to="MasterSlaveROSBridge0.rtc:slave_rleg_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_larm_wrench" to="MasterSlaveROSBridge0.rtc:slave_larm_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_rarm_wrench" to="MasterSlaveROSBridge0.rtc:slave_rarm_wrench" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_lleg_pose" to="MasterSlaveROSBridge0.rtc:slave_lleg_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_rleg_pose" to="MasterSlaveROSBridge0.rtc:slave_rleg_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_larm_pose" to="MasterSlaveROSBridge0.rtc:slave_larm_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_rarm_pose" to="MasterSlaveROSBridge0.rtc:slave_rarm_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_com_pose" to="MasterSlaveROSBridge0.rtc:slave_com_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_head_pose" to="MasterSlaveROSBridge0.rtc:slave_head_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_lhand_pose" to="MasterSlaveROSBridge0.rtc:slave_lhand_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_rhand_pose" to="MasterSlaveROSBridge0.rtc:slave_rhand_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_lfloor_pose" to="MasterSlaveROSBridge0.rtc:slave_lfloor_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:slave_rfloor_pose" to="MasterSlaveROSBridge0.rtc:slave_rfloor_pose" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtconnect unless="$(arg IS_MASTER_SIDE_OF_MASTERSLAVE)" from="wbms.rtc:delay_check_packet_outbound" to="MasterSlaveROSBridge0.rtc:delay_check_packet_outbound" subscription_type="$(arg subscription_type)" push_policy="$(arg push_policy)"/>
+  <rtactivate component="MasterSlaveROSBridge0.rtc" />
+
+</launch>
