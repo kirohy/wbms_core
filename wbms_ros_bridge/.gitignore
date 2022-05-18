@@ -1,7 +1,3 @@
-msg/OpenHRP_*
-srv/OpenHRP_*
-idl
-src_gen
 *~
 Makefile
 CMakeFiles

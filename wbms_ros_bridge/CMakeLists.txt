@@ -25,33 +25,7 @@ find_package(Curses REQUIRED COMPONENTS)
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-catkin_python_setup()
-
-if(EXISTS ${rtmbuild_SOURCE_DIR}/cmake/rtmbuild.cmake)
-  include(${rtmbuild_SOURCE_DIR}/cmake/rtmbuild.cmake)
-elseif(EXISTS ${rtmbuild_SOURCE_PREFIX}/cmake/rtmbuild.cmake)
-  include(${rtmbuild_SOURCE_PREFIX}/cmake/rtmbuild.cmake)
-elseif(EXISTS ${rtmbuild_PREFIX}/share/rtmbuild/cmake/rtmbuild.cmake)
-  include(${rtmbuild_PREFIX}/share/rtmbuild/cmake/rtmbuild.cmake)
-else()
-  get_cmake_property(_variableNames VARIABLES)
-  foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-  endforeach()
-endif()
-
-file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/idl)
-set(hrpsys_wbms_IDL_DIR ${PROJECT_SOURCE_DIR}/../hrpsys_wbms/idl)
-if(EXISTS ${hrpsys_wbms_IDL_DIR})
-  file(GLOB _hrpsys_wbms_idl_files RELATIVE ${hrpsys_wbms_IDL_DIR}/ ${hrpsys_wbms_IDL_DIR}/*.idl)
-  foreach(_hrpsys_wbms_idl_file ${_hrpsys_wbms_idl_files})
-    if(${hrpsys_wbms_IDL_DIR}/${_hrpsys_wbms_idl_file} IS_NEWER_THAN ${PROJECT_SOURCE_DIR}/idl/${_hrpsys_wbms_idl_file})
-      execute_process(COMMAND cmake -E copy ${hrpsys_wbms_IDL_DIR}/${_hrpsys_wbms_idl_file} ${PROJECT_SOURCE_DIR}/idl)
-    endif()
-  endforeach()
-else()
-  message(FATAL_ERROR "${hrpsys_wbms_IDL_DIR} is not found")
-endif()
+# catkin_python_setup()
 
 rtmbuild_init(geometry_msgs)
 
