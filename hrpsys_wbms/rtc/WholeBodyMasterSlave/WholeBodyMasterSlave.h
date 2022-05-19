@@ -159,6 +159,8 @@ class WholeBodyMasterSlave : public RTC::DataFlowComponentBase{
         int optionalDataLength;
         hrp::BodyPtr m_robot_act; // actual
         hrp::BodyPtr m_robot_vsafe; // joint trajectory safe
+        coil::Mutex m_mutex;
+
         typedef boost::shared_ptr<FullbodyInverseKinematicsSolver> fikPtr;
         fikPtr fik;
         std::map<std::string, IKConstraint> ee_ikc_map; // e.g. feet hands head com

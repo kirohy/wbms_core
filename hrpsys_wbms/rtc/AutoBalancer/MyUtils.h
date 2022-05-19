@@ -5,6 +5,9 @@
 #include <hrpModel/Link.h>
 #include <hrpUtil/Eigen3d.h>
 #include <hrpUtil/Eigen4d.h>
+#include <hrpsys/idl/HRPDataTypes.hh>
+#include <rtm/idl/ExtendedDataTypesSkel.h>
+#include "../TorqueFilter/IIRFilter.h"
 #include "../RobotHardware/defs.h"
 
 #include <float.h>

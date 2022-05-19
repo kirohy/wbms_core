@@ -3,6 +3,8 @@
 #define DEBUGP (loop%200==0)
 #define DEBUGP_ONCE (loop==0)
 
+typedef coil::Guard<coil::Mutex> Guard;
+
 static const char* WholeBodyMasterSlave_spec[] = {
         "implementation_id", "WholeBodyMasterSlave",
         "type_name",         "WholeBodyMasterSlave",
@@ -402,6 +404,7 @@ RTC::ReturnCode_t WholeBodyMasterSlave::onExecute(RTC::UniqueId ec_id){
     processTransition();
     mode.update();
 
+    Guard guard(m_mutex);
     if (mode.isRunning()) {
         if(mode.isInitialize()){
             preProcessForWholeBodyMasterSlave();
@@ -531,6 +534,9 @@ void WholeBodyMasterSlave::processTransition(){
 
         case MODE_SYNC_TO_WBMS_TRANS:
             mode.setNextMode(MODE_WBMS_TRANS);
+            break;
+
+        default:
             break;
     }
 }
@@ -894,9 +900,12 @@ namespace hrp{
         OpenHRP::WholeBodyMasterSlaveService::DblSequence3 ret; ret.length(in.size()); hrp::Vector3::Map(ret.get_buffer()) = in; return ret; }
     OpenHRP::WholeBodyMasterSlaveService::DblSequence4 to_DblSequence4(const hrp::Vector4& in){
         OpenHRP::WholeBodyMasterSlaveService::DblSequence4 ret; ret.length(in.size()); hrp::Vector4::Map(ret.get_buffer()) = in; return ret; }
+    OpenHRP::WholeBodyMasterSlaveService::DblSequence6 to_DblSequence6(const hrp::dvector6& in){
+        OpenHRP::WholeBodyMasterSlaveService::DblSequence6 ret; ret.length(in.size()); hrp::dvector6::Map(ret.get_buffer()) = in; return ret; }
 }
 
 bool WholeBodyMasterSlave::setParams(const OpenHRP::WholeBodyMasterSlaveService::WholeBodyMasterSlaveParam& i_param){
+    Guard guard(m_mutex);
     RTC_INFO_STREAM("setWholeBodyMasterSlaveParam");
     wbms->wp.auto_com_mode                      = i_param.auto_com_mode;
     wbms->wp.auto_floor_h_mode                  = i_param.auto_floor_h_mode;
@@ -920,9 +929,57 @@ bool WholeBodyMasterSlave::setParams(const OpenHRP::WholeBodyMasterSlaveService:
     wbms->wp.com_offset                         = hrp::Vector3::Map(i_param.com_offset.get_buffer());
     wbms->wp.actual_foot_vert_fbio              = hrp::Vector4::Map(i_param.actual_foot_vert_fbio.get_buffer());
     wbms->wp.safety_foot_vert_fbio              = hrp::Vector4::Map(i_param.safety_foot_vert_fbio.get_buffer());
+    wbms->wp.ik_arm_constraint_weight           = hrp::dvector6::Map(i_param.ik_arm_constraint_weight.get_buffer());
+    wbms->wp.ik_elbow_constraint_weight         = hrp::dvector6::Map(i_param.ik_elbow_constraint_weight.get_buffer());
+    wbms->wp.ik_arm_precision                   = hrp::Vector2::Map(i_param.ik_arm_precision.get_buffer());
+    wbms->wp.ik_elbow_precision                 = hrp::Vector2::Map(i_param.ik_elbow_precision.get_buffer());
     wbms->wp.use_joints                         = hrp::to_string_vector(i_param.use_joints);
     wbms->wp.use_targets                        = hrp::to_string_vector(i_param.use_targets);
     wbms->wp.CheckSafeLimit();
+    RTC_INFO_STREAM("  auto_com_mode = " << wbms->wp.auto_com_mode);
+    RTC_INFO_STREAM("  auto_floor_h_mode = " << wbms->wp.auto_floor_h_mode);
+    RTC_INFO_STREAM("  auto_foot_landing_by_act_cp = " << wbms->wp.auto_foot_landing_by_act_cp);
+    RTC_INFO_STREAM("  auto_foot_landing_by_act_zmp = " << wbms->wp.auto_foot_landing_by_act_zmp);
+    RTC_INFO_STREAM("  additional_double_support_time = " << wbms->wp.additional_double_support_time);
+    RTC_INFO_STREAM("  auto_com_foot_move_detect_height = " << wbms->wp.auto_com_foot_move_detect_height);
+    RTC_INFO_STREAM("  auto_floor_h_detect_fz = " << wbms->wp.auto_floor_h_detect_fz);
+    RTC_INFO_STREAM("  auto_floor_h_reset_fz = " << wbms->wp.auto_floor_h_reset_fz);
+    RTC_INFO_STREAM("  base_to_hand_min_distance = " << wbms->wp.base_to_hand_min_distance);
+    RTC_INFO_STREAM("  capture_point_extend_ratio = " << wbms->wp.capture_point_extend_ratio);
+    RTC_INFO_STREAM("  com_filter_cutoff_hz = " << wbms->wp.com_filter_cutoff_hz);
+    RTC_INFO_STREAM("  foot_collision_avoidance_distance = " << wbms->wp.foot_collision_avoidance_distance);
+    RTC_INFO_STREAM("  foot_landing_vel = " << wbms->wp.foot_landing_vel);
+    RTC_INFO_STREAM("  force_double_support_com_h = " << wbms->wp.force_double_support_com_h);
+    RTC_INFO_STREAM("  human_to_robot_ratio = " << wbms->wp.human_to_robot_ratio);
+    RTC_INFO_STREAM("  max_double_support_width = " << wbms->wp.max_double_support_width);
+    RTC_INFO_STREAM("  upper_body_rmc_ratio = " << wbms->wp.upper_body_rmc_ratio);
+    RTC_INFO_STREAM("  single_foot_zmp_safety_distance = " << wbms->wp.single_foot_zmp_safety_distance);
+    RTC_INFO_STREAM("  swing_foot_height_offset = " << wbms->wp.swing_foot_height_offset);
+    RTC_INFO_STREAM("  com_offset = [" << wbms->wp.com_offset[0] << ", " << wbms->wp.com_offset[1] << ", " << wbms->wp.com_offset[2] << "]");
+    RTC_INFO_STREAM("  actual_foot_vert_fbio = [" << wbms->wp.actual_foot_vert_fbio[0] << ", "
+                                                  << wbms->wp.actual_foot_vert_fbio[1] << ", "
+                                                  << wbms->wp.actual_foot_vert_fbio[2] << ", "
+                                                  << wbms->wp.actual_foot_vert_fbio[3] << "]");
+    RTC_INFO_STREAM("  safety_foot_vert_fbio = [" << wbms->wp.safety_foot_vert_fbio[0] << ", "
+                                                  << wbms->wp.safety_foot_vert_fbio[1] << ", "
+                                                  << wbms->wp.safety_foot_vert_fbio[2] << ", "
+                                                  << wbms->wp.safety_foot_vert_fbio[3] << "]");
+    RTC_INFO_STREAM("  ik_arm_constraint_weight   = [" << wbms->wp.ik_arm_constraint_weight(0, 0) << ", "
+                                                       << wbms->wp.ik_arm_constraint_weight(1, 0) << ", "
+                                                       << wbms->wp.ik_arm_constraint_weight(2, 0) << ", "
+                                                       << wbms->wp.ik_arm_constraint_weight(3, 0) << ", "
+                                                       << wbms->wp.ik_arm_constraint_weight(4, 0) << ", "
+                                                       << wbms->wp.ik_arm_constraint_weight(5, 0) << "]");
+    RTC_INFO_STREAM("  ik_elbow_constraint_weight = [" << wbms->wp.ik_elbow_constraint_weight(0, 0) << ", "
+                                                       << wbms->wp.ik_elbow_constraint_weight(1, 0) << ", "
+                                                       << wbms->wp.ik_elbow_constraint_weight(2, 0) << ", "
+                                                       << wbms->wp.ik_elbow_constraint_weight(3, 0) << ", "
+                                                       << wbms->wp.ik_elbow_constraint_weight(4, 0) << ", "
+                                                       << wbms->wp.ik_elbow_constraint_weight(5, 0) << "]");
+    RTC_INFO_STREAM("  ik_arm_precision   : pos = " << wbms->wp.ik_arm_precision[0]   << ", rot = " << wbms->wp.ik_arm_precision[1]);
+    RTC_INFO_STREAM("  ik_elbow_precision : pos = " << wbms->wp.ik_elbow_precision[0] << ", rot = " << wbms->wp.ik_elbow_precision[1]);
+    // RTC_INFO_STREAM("  use_joints = " << wbms->wp.use_joints);
+    // RTC_INFO_STREAM("  use_targets = " << wbms->wp.use_targets);
     return true;
 }
 
@@ -951,6 +1008,10 @@ bool WholeBodyMasterSlave::getParams(OpenHRP::WholeBodyMasterSlaveService::Whole
     i_param.com_offset                          = hrp::to_DblSequence3(wbms->wp.com_offset);
     i_param.actual_foot_vert_fbio               = hrp::to_DblSequence4(wbms->wp.actual_foot_vert_fbio);
     i_param.safety_foot_vert_fbio               = hrp::to_DblSequence4(wbms->wp.safety_foot_vert_fbio);
+    i_param.ik_arm_constraint_weight            = hrp::to_DblSequence6(wbms->wp.ik_arm_constraint_weight);
+    i_param.ik_elbow_constraint_weight          = hrp::to_DblSequence6(wbms->wp.ik_elbow_constraint_weight);
+    i_param.ik_arm_precision                    = hrp::to_DblSequence2(wbms->wp.ik_arm_precision);
+    i_param.ik_elbow_precision                  = hrp::to_DblSequence2(wbms->wp.ik_elbow_precision);
     i_param.use_joints                          = hrp::to_StrSequence(wbms->wp.use_joints);
     i_param.use_targets                         = hrp::to_StrSequence(wbms->wp.use_targets);
     return true;

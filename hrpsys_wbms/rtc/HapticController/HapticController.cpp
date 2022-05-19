@@ -498,7 +498,7 @@ void HapticController::calcTorque(){
     }
 
 
-    const hrp::dvector max_torque = (hrp::dvector(m_robot->numJoints()) << 20,40,60,60,20,20, 20,40,60,60,20,20, 40, 15,15,10,10,6,4,4, 15,15,10,10,6,4,4, 4,4).finished(); // Warning
+    const hrp::dvector max_torque = (hrp::dvector(m_robot->numJoints()) << 20,40,60,60,20,20, 20,40,60,60,20,20, 40, 15,15,10,10,6,4,4,4, 15,15,10,10,6,4,4,4).finished(); // Warning
     hrp::dvector j_power_coeff = max_torque/max_torque.maxCoeff(); // reduce gain of light inertia joint
 
     {// calc qref pd control torque
@@ -685,6 +685,35 @@ bool HapticController::setParams(const OpenHRP::HapticControllerService::HapticC
         wrench_lpf_for_hpf[ee].reset(0);
         wrench_lpf[ee].setParameter(hcp.wrench_lpf_cutoff_hz, 1/m_dt, Q_BUTTERWORTH);
         wrench_lpf[ee].reset(0);
+    }
+    RTC_INFO_STREAM("  baselink_h_from_floor = " << hcp.baselink_height_from_floor);
+    RTC_INFO_STREAM("  dqAct_filter_cutoff_hz = " << hcp.dqAct_filter_cutoff_hz);
+    RTC_INFO_STREAM("  ee_vel_filter_cutoff_hz = " << hcp.ee_vel_filter_cutoff_hz);
+    RTC_INFO_STREAM("  ex_gravity_compensation_ratio_lower = " << hcp.ex_gravity_compensation_ratio_lower);
+    RTC_INFO_STREAM("  ex_gravity_compensation_ratio_upper = " << hcp.ex_gravity_compensation_ratio_upper);
+    RTC_INFO_STREAM("  foot_min_distance = " << hcp.foot_min_distance);
+    RTC_INFO_STREAM("  force_feedback_ratio = " << hcp.force_feedback_ratio);
+    RTC_INFO_STREAM("  gravity_compensation_ratio = " << hcp.gravity_compensation_ratio);
+    RTC_INFO_STREAM("  q_friction_coeff = " << hcp.q_friction_coeff);
+    RTC_INFO_STREAM("  q_ref_max_torque_ratio = " << hcp.q_ref_max_torque_ratio);
+    RTC_INFO_STREAM("  torque_feedback_ratio = " << hcp.torque_feedback_ratio);
+    RTC_INFO_STREAM("  wrench_hpf_cutoff_hz = " << hcp.wrench_hpf_cutoff_hz);
+    RTC_INFO_STREAM("  wrench_lpf_cutoff_hz = " << hcp.wrench_lpf_cutoff_hz);
+    RTC_INFO_STREAM("  wrench_hpf_gain = " << hcp.wrench_hpf_gain);
+    RTC_INFO_STREAM("  wrench_lpf_gain = " << hcp.wrench_lpf_gain);
+    RTC_INFO_STREAM("  ee_pos_rot_friction_coeff = [" << hcp.ee_pos_rot_friction_coeff[0] << ", " << hcp.ee_pos_rot_friction_coeff[1] << "]");
+    RTC_INFO_STREAM("  floor_pd_gain = [" << hcp.floor_pd_gain[0] << ", " << hcp.floor_pd_gain[1] << "]");
+    RTC_INFO_STREAM("  foot_horizontal_pd_gain = [" << hcp.foot_horizontal_pd_gain[0] << ", " << hcp.foot_horizontal_pd_gain[1] << "]");
+    RTC_INFO_STREAM("  force_feedback_limit_ft = [" << hcp.force_feedback_limit_ft[0] << ", " << hcp.force_feedback_limit_ft[1] << "]");
+    RTC_INFO_STREAM("  q_ref_pd_gain = [" << hcp.q_ref_pd_gain[0] << ", " << hcp.q_ref_pd_gain[1] << "]");
+    for (int i = 0; i < ee_names.size(); i++) {
+        RTC_INFO_STREAM("  ex_ee_ref_wrench[" << ee_names[i] << "] = " << hcp.ex_ee_ref_wrench[ee_names[i]](0) << ", "
+                                                                        << hcp.ex_ee_ref_wrench[ee_names[i]](1) << ", "
+                                                                        << hcp.ex_ee_ref_wrench[ee_names[i]](2) << ", "
+                                                                        << hcp.ex_ee_ref_wrench[ee_names[i]](3) << ", "
+                                                                        << hcp.ex_ee_ref_wrench[ee_names[i]](4) << ", "
+                                                                        << hcp.ex_ee_ref_wrench[ee_names[i]](5) << "]");
+    
     }
     return true;
 }

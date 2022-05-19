@@ -11,6 +11,7 @@ module OpenHRP
     typedef sequence<double, 2> DblSequence2;
     typedef sequence<double, 3> DblSequence3;
     typedef sequence<double, 4> DblSequence4;
+    typedef sequence<double, 6> DblSequence6;
     typedef double DblArray2[2];
     typedef double DblArray3[3];
     typedef double DblArray4[4];
@@ -40,6 +41,10 @@ module OpenHRP
         DblSequence3 com_offset;
         DblSequence4 actual_foot_vert_fbio;
         DblSequence4 safety_foot_vert_fbio;
+        DblSequence6 ik_arm_constraint_weight;
+        DblSequence6 ik_elbow_constraint_weight;
+        DblSequence2 ik_arm_precision;
+        DblSequence2 ik_elbow_precision;
         StrSequence use_joints;
         StrSequence use_targets;
     };

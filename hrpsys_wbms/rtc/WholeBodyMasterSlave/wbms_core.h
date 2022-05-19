@@ -382,6 +382,10 @@ class WBMSCore{
                 hrp::Vector3 com_offset;
                 hrp::Vector4 actual_foot_vert_fbio;
                 hrp::Vector4 safety_foot_vert_fbio;
+                hrp::dvector6 ik_arm_constraint_weight;
+                hrp::dvector6 ik_elbow_constraint_weight;
+                hrp::Vector2 ik_arm_precision;
+                hrp::Vector2 ik_elbow_precision;
                 std::vector<std::string> use_joints;
                 std::vector<std::string> use_targets;
             WBMSParams(){
@@ -407,6 +411,10 @@ class WBMSCore{
                 com_offset                          << 0, 0, 0;
                 actual_foot_vert_fbio               << 0.13, -0.10,  0.06, -0.08;
                 safety_foot_vert_fbio               << 0.02, -0.02,  0.02,  0.01;
+                ik_arm_constraint_weight            = (hrp::dvector6() << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1).finished();
+                ik_elbow_constraint_weight          = (hrp::dvector6() << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1).finished();
+                ik_arm_precision                    << 3e-3, 3;
+                ik_elbow_precision                  << 3e-3, 3;
                 CheckSafeLimit();
             }
             void CheckSafeLimit(){
