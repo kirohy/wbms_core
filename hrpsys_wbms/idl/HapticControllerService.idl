@@ -12,7 +12,7 @@ module OpenHRP
     typedef sequence<double, 3> DblSequence3;
     typedef sequence<double, 4> DblSequence4;
     typedef sequence<double, 6> DblSequence6;
-    typedef sequence<sequence<double, 6> , 4> DblSeqSeq6;
+    typedef sequence<sequence<double, 6> , 6> DblSeqSeq6;
     typedef double DblArray2[2];
     typedef double DblArray3[3];
     typedef double DblArray4[4];

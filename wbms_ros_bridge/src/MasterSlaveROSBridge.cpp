@@ -35,6 +35,8 @@ RTC::ReturnCode_t MasterSlaveROSBridge::onInitialize(){
     ee_names.push_back("rleg");
     ee_names.push_back("larm");
     ee_names.push_back("rarm");
+    ee_names.push_back("relbow");
+    ee_names.push_back("lelbow");
 
     tgt_names = ee_names;
     tgt_names.push_back("com");

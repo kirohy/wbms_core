@@ -1,5 +1,0 @@
-Makefile
-CMakeFiles
-*.cmake
-.clangd
-compile_commands.json

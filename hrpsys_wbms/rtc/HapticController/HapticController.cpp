@@ -707,7 +707,7 @@ bool HapticController::setParams(const OpenHRP::HapticControllerService::HapticC
     RTC_INFO_STREAM("  force_feedback_limit_ft = [" << hcp.force_feedback_limit_ft[0] << ", " << hcp.force_feedback_limit_ft[1] << "]");
     RTC_INFO_STREAM("  q_ref_pd_gain = [" << hcp.q_ref_pd_gain[0] << ", " << hcp.q_ref_pd_gain[1] << "]");
     for (int i = 0; i < ee_names.size(); i++) {
-        RTC_INFO_STREAM("  ex_ee_ref_wrench[" << ee_names[i] << "] = " << hcp.ex_ee_ref_wrench[ee_names[i]](0) << ", "
+        RTC_INFO_STREAM("  ex_ee_ref_wrench[" << ee_names[i] << "] = [" << hcp.ex_ee_ref_wrench[ee_names[i]](0) << ", "
                                                                         << hcp.ex_ee_ref_wrench[ee_names[i]](1) << ", "
                                                                         << hcp.ex_ee_ref_wrench[ee_names[i]](2) << ", "
                                                                         << hcp.ex_ee_ref_wrench[ee_names[i]](3) << ", "
@@ -742,7 +742,7 @@ bool HapticController::getParams(OpenHRP::HapticControllerService::HapticControl
     i_param.force_feedback_limit_ft             = hrp::to_DblSequence2(hcp.force_feedback_limit_ft);
     i_param.q_ref_pd_gain                       = hrp::to_DblSequence2(hcp.q_ref_pd_gain);
 
-    i_param.ex_ee_ref_wrench.length(4);
+    i_param.ex_ee_ref_wrench.length(6);
     for (int i=0; i<ee_names.size(); i++){//順番気をつけないと危険．confファイルに書いたend_effectorの順
         i_param.ex_ee_ref_wrench[i].length(6);
         for(int j=0;j<ft_xyz;j++){

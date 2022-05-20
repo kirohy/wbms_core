@@ -45,12 +45,16 @@ class MasterConfigurator(HrpsysConfigurator):
             self.connectLoggerPort(self.hc, 'master_lleg_pose')
             self.connectLoggerPort(self.hc, 'master_rarm_pose')
             self.connectLoggerPort(self.hc, 'master_larm_pose')
+            self.connectLoggerPort(self.hc, 'master_relbow_pose')
+            self.connectLoggerPort(self.hc, 'master_lelbow_pose')
             self.connectLoggerPort(self.hc, 'master_com_pose')
             self.connectLoggerPort(self.hc, 'master_head_pose')
             self.connectLoggerPort(self.hc, 'master_rleg_wrench_dbg')
             self.connectLoggerPort(self.hc, 'master_lleg_wrench_dbg')
             self.connectLoggerPort(self.hc, 'master_rarm_wrench_dbg')
             self.connectLoggerPort(self.hc, 'master_larm_wrench_dbg')
+            self.connectLoggerPort(self.hc, 'master_relbow_wrench_dbg')
+            self.connectLoggerPort(self.hc, 'master_lelbow_wrench_dbg')
 
     def startUpSequence(self):
         print("reset virtual floor, odom")
