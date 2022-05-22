@@ -114,6 +114,8 @@ RTC::ReturnCode_t WholeBodyMasterSlave::onInitialize(){
         wbms->wp.use_targets.push_back("lleg");
         wbms->wp.use_targets.push_back("rarm");
         wbms->wp.use_targets.push_back("larm");
+        wbms->wp.use_targets.push_back("relbow");
+        wbms->wp.use_targets.push_back("lelbow");
         wbms->wp.use_targets.push_back("com");
         wbms->wp.use_targets.push_back("head");
     }else{
@@ -220,6 +222,9 @@ RTC::ReturnCode_t WholeBodyMasterSlave::onInitialize(){
 
 RTC::ReturnCode_t WholeBodyMasterSlave::setupEEIKConstraintFromConf(std::map<std::string, IKConstraint>& _ee_ikc_map, hrp::BodyPtr _robot, RTC::Properties& _prop){
     coil::vstring ee_conf_all = coil::split(_prop["end_effectors"], ",");
+    coil::vstring ff_conf_all = coil::split(_prop["additional_operating_point"], ",");
+    ee_conf_all.pop_back();
+    std::copy(ff_conf_all.begin(), ff_conf_all.end(), std::back_inserter(ee_conf_all));
     size_t prop_num = 10; // limbname + linkname + basename + pos(3) + angleaxis(4)
     if (ee_conf_all.size() > 0) {
         size_t ee_num = ee_conf_all.size()/prop_num;
@@ -592,9 +597,23 @@ void WholeBodyMasterSlave::solveFullbodyIK(HumanPose& ref){
                 tmp.localR              = ee_ikc_map[arm].localR;
                 tmp.targetPos           = ref.stgt(arm).abs.p;
                 tmp.targetRpy           = ref.stgt(arm).abs.rpy();
-                tmp.constraint_weight   = hrp::dvector6::Constant(0.1);
-                tmp.pos_precision       = 3e-3;
-                tmp.rot_precision       = deg2rad(3);
+                tmp.constraint_weight   = wbms->wp.ik_arm_constraint_weight;
+                tmp.pos_precision       = wbms->wp.ik_arm_precision[0];
+                tmp.rot_precision       = deg2rad(wbms->wp.ik_arm_precision[1]);
+                ikc_list.push_back(tmp);
+            }
+        }
+        for(auto elbow : {"lelbow","relbow"}){
+            if(has(wbms->wp.use_targets, elbow)){
+                IKConstraint tmp;
+                tmp.target_link_name    = ee_ikc_map[elbow].target_link_name;
+                tmp.localPos            = ee_ikc_map[elbow].localPos;
+                tmp.localR              = ee_ikc_map[elbow].localR;
+                tmp.targetPos           = ref.stgt(elbow).abs.p;
+                tmp.targetRpy           = ref.stgt(elbow).abs.rpy();
+                tmp.constraint_weight   = wbms->wp.ik_elbow_constraint_weight;
+                tmp.pos_precision       = wbms->wp.ik_elbow_precision[0];
+                tmp.rot_precision       = deg2rad(wbms->wp.ik_elbow_precision[1]);
                 ikc_list.push_back(tmp);
             }
         }
@@ -787,7 +806,7 @@ void WholeBodyMasterSlave::solveFullbodyIK(HumanPose& ref){
         }
     }
 
-    const int IK_MAX_LOOP = 1;
+    const int IK_MAX_LOOP = 5;
     int loop_result = fik->solveFullbodyIKLoop(ikc_list, IK_MAX_LOOP);
 }
 

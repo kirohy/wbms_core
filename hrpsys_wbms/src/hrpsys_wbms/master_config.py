@@ -71,6 +71,8 @@ class MasterConfigurator(HrpsysConfigurator):
         self.rh_svc.setJointControlMode("ALL",OpenHRP.RobotHardwareService.TORQUE) # for tablis torque control
         self.servoOn()
         self.rh_svc.setServoTorqueGainPercentage("all", 100) # for tablis torque control
+        self.seq_svc.setJointAngles(self.tablisResetPoseUpper(), 5.0)
+        time.sleep(5)
         self.setResetPose()
         self.hc_svc.startHapticController()
 

@@ -14,8 +14,8 @@
 #include <boost/program_options.hpp>
 
 int shmid;
-#define NUM_EES 4
-#define NUM_TGTS 10
+#define NUM_EES 6
+#define NUM_TGTS 12
 const int RATE = 1000;
 const int MONITOR_RATE = 10;
 #define MAX_FRAME_ID_SIZE 1024
@@ -282,6 +282,8 @@ int main(int argc, char** argv) {
     ee_names.push_back("rleg");
     ee_names.push_back("larm");
     ee_names.push_back("rarm");
+    ee_names.push_back("relbow");
+    ee_names.push_back("lelbow");
     tgt_names = ee_names;
     tgt_names.push_back("com");
     tgt_names.push_back("head");

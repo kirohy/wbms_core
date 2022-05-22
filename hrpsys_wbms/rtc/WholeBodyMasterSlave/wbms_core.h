@@ -80,7 +80,7 @@ class HumanPose{
         ~HumanPose(){cerr<<"HumanPose destructed"<<endl;}
         void reset(){ for(std::vector<PoseTGT>::iterator it = tgt.begin(); it != tgt.end(); it++){ it->reset(); }  }
         friend ostream& operator<<(ostream& os, const HumanPose& in){
-            const std::vector<std::string> short_ns = {"c","rf","lf","rh","lh","hd","z"};
+            const std::vector<std::string> short_ns = {"c","rf","lf","rh","lh","re","le","hd","z"};
             os << std::fixed << std::setprecision(1);
             for (int i=0; i<in.tgt.size(); i++){ os << "\x1b[31m" << short_ns[i] << "\x1b[39m " << in.tgt[i].abs.p.transpose() <<" "; }
             return os;
@@ -90,13 +90,15 @@ class HumanPose{
         PoseTGT&        hand(const int lr)      { assert(lr == R || lr == L); return (lr == R) ? tgt[rh] : tgt[lh]; }
         const PoseTGT&  hand(const int lr) const{ assert(lr == R || lr == L); return (lr == R) ? tgt[rh] : tgt[lh]; }
         PoseTGT&  stgt(const std::string ln){
-            assert(ln == "com" || ln == "head" || ln == "lleg" || ln == "rleg" || ln == "larm" || ln == "rarm" );
-            if      (ln == "lleg"){ return tgt[lf]; }
-            else if (ln == "rleg"){ return tgt[rf]; }
-            else if (ln == "larm"){ return tgt[lh]; }
-            else if (ln == "rarm"){ return tgt[rh]; }
-            else if (ln == "com" ){ return tgt[com]; }
-            else                  { return tgt[head]; }
+            assert(ln == "com" || ln == "head" || ln == "lleg" || ln == "rleg" || ln == "larm" || ln == "rarm" || ln == "lelbow" || ln == "relbow");
+            if      (ln == "lleg")  { return tgt[lf]; }
+            else if (ln == "rleg")  { return tgt[rf]; }
+            else if (ln == "larm")  { return tgt[lh]; }
+            else if (ln == "rarm")  { return tgt[rh]; }
+            else if (ln == "relbow"){ return tgt[rel]; }
+            else if (ln == "lelbow"){ return tgt[lel]; }
+            else if (ln == "com" )  { return tgt[com]; }
+            else                    { return tgt[head]; }
         }
 };
 
@@ -509,15 +511,15 @@ class WBMSCore{
             return (hrp::Vector4()<< in(0)+offset, in(1)-offset, in(2)+offset, in(3)-offset).finished();//右前
         }
         void initializeHumanPoseFromCurrentInput(){
-            std::string ns[7] = {"com","rf","lf","rh","lh","zmp","head"};
-            for(int i=0;i<7;i++){
+            std::string ns[num_pose_tgt] = {"com","rf","lf","rh","lh","rel","lel","zmp","head"};
+            for(int i=0;i<num_pose_tgt;i++){
                 hp_wld_raw.tgt[i].offs = hp_wld_raw.tgt[i].abs;
             }
         }
         void initializeRobotPoseFromHRPBody(const hrp::BodyPtr robot_in, std::map<std::string, IKConstraint>& _ee_ikc_map){
-            const std::string robot_l_names[4] = {"rleg","lleg","rarm","larm"};
-            const int human_l_names[4] = {rf,lf,rh,lh};
-            for(int i=0;i<4;i++){//HumanSynchronizerの初期姿勢オフセットをセット
+            const std::string robot_l_names[6] = {"rleg","lleg","rarm","larm","relbow","lelbow"};
+            const int human_l_names[6] = {rf,lf,rh,lh,rel,lel};
+            for(int i=0;i<6;i++){//HumanSynchronizerの初期姿勢オフセットをセット
                 if(_ee_ikc_map.count(robot_l_names[i])){
                     rp_ref_out.tgt[human_l_names[i]].abs =
                     rp_ref_out.tgt[human_l_names[i]].offs = 
