@@ -15,9 +15,9 @@
 enum { R, L, LR };
 enum { XY = 2 };
 enum { XYZ = 3 };
-enum { r, p, y, rpy };
-enum { fx, fy, fz, tx, ty, tz, ft_xyz };
-enum { com, rf, lf, rh, lh, rel, lel, head, zmp, num_pose_tgt };
+enum { ROLL, PITCH, YAW, RPY };
+enum { fx, fy, fz, tx, ty, tz, ft_xyz }; // unused
+enum { COM, RF, LF, RH, LH, REL, LEL, HEAD, ZMP, NUM_POSE_TGT };
 enum { num_ee_tgt=4 }; // unused
 
 #define LR_STR(lr) (lr==R ? "R" : "L")
@@ -27,9 +27,9 @@ static const double G = 9.80665;
 static const double Q_NOOVERSHOOT = 0.5;
 static const double Q_BUTTERWORTH = 0.707106781;
 
-#define dbg(var) std::cerr<<#var"= "<<(var)<<std::endl
-#define dbgn(var) std::cerr<<#var"= "<<std::endl<<(var)<<std::endl
-#define dbgv(var) std::cerr<<#var"= "<<(var.transpose())<<std::endl
+#define dbg(var) std::cerr<<std::setprecision(6)<<#var"= "<<(var)<<std::endl
+#define dbgn(var) std::cerr<<std::setprecision(6)<<#var"= "<<std::endl<<(var)<<std::endl
+#define dbgv(var) std::cerr<<std::setprecision(6)<<#var"= "<<(var.transpose())<<std::endl
 #define RTC_INFO_STREAM(var) std::cerr << "[" << m_profile.instance_name << "] "<< var << std::endl;
 #define RTC_WARN_STREAM(var) std::cerr << "\x1b[31m[" << m_profile.instance_name << "] " << var << "\x1b[39m" << std::endl;
 
@@ -72,7 +72,7 @@ namespace hrp{
         return Pose3( tgt.p + tgt.R * transform.p, tgt.R * transform.R);
     }
     inline Pose3 to_2DPlanePose3(const Pose3& in){
-        return Pose3(in.p(X), in.p(Y), 0, 0, 0, in.rpy()(y));
+        return Pose3(in.p(X), in.p(Y), 0, 0, 0, in.rpy()(YAW));
     }
 
     inline hrp::Vector3         to_Vector3      (const RTC::Point3D& in)        { return hrp::Vector3(in.x, in.y, in.z); }
@@ -84,9 +84,9 @@ namespace hrp{
 
     inline RTC::Point3D         to_Point3D      (const hrp::Vector3& in)        { return (RTC::Point3D){in(X),in(Y),in(Z)}; }
     inline RTC::Orientation3D   to_Orientation3D(const hrp::Vector3& in)        { return (RTC::Orientation3D){in(X),in(Y),in(Z)}; }
-    inline RTC::Pose3D          to_Pose3D       (const hrp::dvector6& in)       { return (RTC::Pose3D){in(X),in(Y),in(Z),in(r),in(p),in(y)}; }
-    inline RTC::Pose3D          to_Pose3D       (const hrp::Pose3& in)          { return (RTC::Pose3D){in.p(X),in.p(Y),in.p(Z),in.rpy()(r),in.rpy()(p),in.rpy()(y)}; }
-    inline OpenHRP::Wrench      to_Wrench       (const hrp::dvector6& in)       { return (OpenHRP::Wrench){in(X),in(Y),in(Z),in(r),in(p),in(y)}; }
+    inline RTC::Pose3D          to_Pose3D       (const hrp::dvector6& in)       { return (RTC::Pose3D){in(X),in(Y),in(Z),in(ROLL),in(PITCH),in(YAW)}; }
+    inline RTC::Pose3D          to_Pose3D       (const hrp::Pose3& in)          { return (RTC::Pose3D){in.p(X),in.p(Y),in.p(Z),in.rpy()(ROLL),in.rpy()(PITCH),in.rpy()(YAW)}; }
+    inline OpenHRP::Wrench      to_Wrench       (const hrp::dvector6& in)       { return (OpenHRP::Wrench){in(X),in(Y),in(Z),in(ROLL),in(PITCH),in(YAW)}; }
     inline RTC::TimedDoubleSeq::_data_seq   to_DoubleSeq    (const hrp::dvector& in)    { RTC::TimedDoubleSeq::_data_seq out; out.length(in.size()); hrp::dvector::Map(out.get_buffer(), in.size()) = in; return out; }
 
     inline hrp::Pose3   getLinkPose3    (const hrp::Link* _link)                { return hrp::Pose3(_link->p, _link->R);  }

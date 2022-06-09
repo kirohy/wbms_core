@@ -110,12 +110,9 @@ RTC::ReturnCode_t WholeBodyMasterSlave::onInitialize(){
     }
 
     if(fik->m_robot->name().find("JAXON") != std::string::npos){ // for demo
-        wbms->wp.use_targets.push_back("rleg");
-        wbms->wp.use_targets.push_back("lleg");
-        wbms->wp.use_targets.push_back("rarm");
-        wbms->wp.use_targets.push_back("larm");
-        wbms->wp.use_targets.push_back("relbow");
-        wbms->wp.use_targets.push_back("lelbow");
+        for (int i=0; i<ee_names.size(); i++) {
+            wbms->wp.use_targets.push_back(ee_names[i]);
+        }
         wbms->wp.use_targets.push_back("com");
         wbms->wp.use_targets.push_back("head");
     }else{
@@ -308,7 +305,7 @@ RTC::ReturnCode_t WholeBodyMasterSlave::onExecute(RTC::UniqueId ec_id){
     for(auto ee : {"larm","rarm"}){
         const hrp::Vector3 use_f = hrp::Vector3::UnitZ() * m_slaveEEWrenches[ee].data[Z];
         hrp::Vector3 use_f_filtered = ee_f_filter[ee].passFilter(use_f);
-        const hrp::Vector3 ee_pos_from_com = ee_ikc_map[ee].getCurrentTargetPos(m_robot_vsafe) - wbms->rp_ref_out.tgt[com].abs.p;
+        const hrp::Vector3 ee_pos_from_com = ee_ikc_map[ee].getCurrentTargetPos(m_robot_vsafe) - wbms->rp_ref_out.tgt[COM].abs.p;
         static_balancing_com_offset.head(XY) += - ee_pos_from_com.head(XY) * use_f_filtered(Z) / (-m_robot_vsafe->totalMass() * G);
     }
     if(loop%500==0)dbgv(static_balancing_com_offset);
@@ -479,8 +476,8 @@ RTC::ReturnCode_t WholeBodyMasterSlave::onExecute(RTC::UniqueId ec_id){
             for(int i=0;i<optionalDataLength;i++)m_optionalData.data[i] = 0;
         }
         if(wbms->legged){
-            m_optionalData.data[contact_states_index_map["rleg"]] = m_optionalData.data[optionalDataLength/2 + contact_states_index_map["rleg"]] = wbms->rp_ref_out.tgt[rf].is_contact();
-            m_optionalData.data[contact_states_index_map["lleg"]] = m_optionalData.data[optionalDataLength/2 + contact_states_index_map["lleg"]] = wbms->rp_ref_out.tgt[lf].is_contact();
+            m_optionalData.data[contact_states_index_map["rleg"]] = m_optionalData.data[optionalDataLength/2 + contact_states_index_map["rleg"]] = wbms->rp_ref_out.tgt[RF].is_contact();
+            m_optionalData.data[contact_states_index_map["lleg"]] = m_optionalData.data[optionalDataLength/2 + contact_states_index_map["lleg"]] = wbms->rp_ref_out.tgt[LF].is_contact();
         }
         addTimeReport("SetOutPut");
 
@@ -585,7 +582,7 @@ void WholeBodyMasterSlave::solveFullbodyIK(HumanPose& ref){
                 tmp.localR              = ee_ikc_map[leg].localR;
                 tmp.targetPos           = ref.stgt(leg).abs.p;
                 tmp.targetRpy           = ref.stgt(leg).abs.rpy();
-                tmp.constraint_weight   = wbms->rp_ref_out.tgt[rf].is_contact() ? hrp::dvector6::Constant(3) : hrp::dvector6::Constant(0.1);
+                tmp.constraint_weight   = wbms->rp_ref_out.tgt[RF].is_contact() ? hrp::dvector6::Constant(3) : hrp::dvector6::Constant(0.1);
                 ikc_list.push_back(tmp);
             }
         }
@@ -673,12 +670,12 @@ void WholeBodyMasterSlave::solveFullbodyIK(HumanPose& ref){
             ikc_list.push_back(tmp);
         }
     }
-    if(wbms->rp_ref_out.tgt[rf].is_contact()){
+    if(wbms->rp_ref_out.tgt[RF].is_contact()){
         sccp->avoid_priority.head(12).head(6).fill(4);
     }else{
         sccp->avoid_priority.head(12).head(6).fill(3);
     }
-    if(wbms->rp_ref_out.tgt[lf].is_contact()){
+    if(wbms->rp_ref_out.tgt[LF].is_contact()){
         sccp->avoid_priority.head(12).tail(6).fill(4);
     }else{
         sccp->avoid_priority.head(12).tail(6).fill(3);
@@ -728,8 +725,13 @@ void WholeBodyMasterSlave::solveFullbodyIK(HumanPose& ref){
 
     if( fik->m_robot->link("CHEST_JOINT0") != NULL) fik->dq_weight_all(fik->m_robot->link("CHEST_JOINT0")->jointId) = 1e3;//JAXON
     if( fik->m_robot->link("CHEST_JOINT1") != NULL) fik->dq_weight_all(fik->m_robot->link("CHEST_JOINT1")->jointId) = 1e3;
-//    if( fik->m_robot->link("CHEST_JOINT2") != NULL) fik->dq_weight_all(fik->m_robot->link("CHEST_JOINT2")->jointId) = 10;
-    if( fik->m_robot->link("CHEST_JOINT2") != NULL) fik->dq_weight_all(fik->m_robot->link("CHEST_JOINT2")->jointId) = 0;//実機修理中
+    if( fik->m_robot->link("CHEST_JOINT2") != NULL) fik->dq_weight_all(fik->m_robot->link("CHEST_JOINT2")->jointId) = 1e2;
+    // if( fik->m_robot->link("LARM_JOINT0") != NULL) fik->dq_weight_all(fik->m_robot->link("LARM_JOINT0")->jointId) = 1;
+    // if( fik->m_robot->link("RARM_JOINT0") != NULL) fik->dq_weight_all(fik->m_robot->link("RARM_JOINT0")->jointId) = 1;
+    // if( fik->m_robot->link("LARM_JOINT4") != NULL) fik->dq_weight_all(fik->m_robot->link("LARM_JOINT4")->jointId) = 1;
+    // if( fik->m_robot->link("RARM_JOINT4") != NULL) fik->dq_weight_all(fik->m_robot->link("RARM_JOINT4")->jointId) = 1;
+    // if( fik->m_robot->link("LARM_JOINT6") != NULL) fik->dq_weight_all(fik->m_robot->link("LARM_JOINT6")->jointId) = 1;
+    // if( fik->m_robot->link("RARM_JOINT6") != NULL) fik->dq_weight_all(fik->m_robot->link("RARM_JOINT6")->jointId) = 1;
 
     if( fik->m_robot->link("CHEST_JOINT0") != NULL) fik->m_robot->link("CHEST_JOINT0")->llimit = deg2rad(-8);
     if( fik->m_robot->link("CHEST_JOINT0") != NULL) fik->m_robot->link("CHEST_JOINT0")->ulimit = deg2rad(8);
@@ -751,8 +753,8 @@ void WholeBodyMasterSlave::solveFullbodyIK(HumanPose& ref){
     if( fik->m_robot->link("LARM_JOINT7") != NULL) fik->m_robot->link("LARM_JOINT7")->llimit = deg2rad(-61);
     if( fik->m_robot->link("LARM_JOINT7") != NULL) fik->m_robot->link("LARM_JOINT7")->ulimit = deg2rad(58);
 
-    if( fik->m_robot->link("RARM_JOINT2") != NULL) fik->m_robot->link("RARM_JOINT2")->ulimit = deg2rad(-45);//脇内側の干渉回避
-    if( fik->m_robot->link("LARM_JOINT2") != NULL) fik->m_robot->link("LARM_JOINT2")->llimit = deg2rad(45);
+    if( fik->m_robot->link("RARM_JOINT2") != NULL) fik->m_robot->link("RARM_JOINT2")->ulimit = deg2rad(-20);//脇内側の干渉回避
+    if( fik->m_robot->link("LARM_JOINT2") != NULL) fik->m_robot->link("LARM_JOINT2")->llimit = deg2rad(20);
     if( fik->m_robot->link("RARM_JOINT2") != NULL) fik->m_robot->link("RARM_JOINT2")->llimit = deg2rad(-89);//肩グルン防止
     if( fik->m_robot->link("LARM_JOINT2") != NULL) fik->m_robot->link("LARM_JOINT2")->ulimit = deg2rad(89);
     if( fik->m_robot->link("RARM_JOINT4") != NULL) fik->m_robot->link("RARM_JOINT4")->ulimit = deg2rad(1);//肘逆折れ
@@ -806,7 +808,7 @@ void WholeBodyMasterSlave::solveFullbodyIK(HumanPose& ref){
         }
     }
 
-    const int IK_MAX_LOOP = 5;
+    const int IK_MAX_LOOP = 1;
     int loop_result = fik->solveFullbodyIKLoop(ikc_list, IK_MAX_LOOP);
 }
 
