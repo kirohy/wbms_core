@@ -726,8 +726,8 @@ void WholeBodyMasterSlave::solveFullbodyIK(HumanPose& ref){
     if( fik->m_robot->link("CHEST_JOINT0") != NULL) fik->dq_weight_all(fik->m_robot->link("CHEST_JOINT0")->jointId) = 1e3;//JAXON
     if( fik->m_robot->link("CHEST_JOINT1") != NULL) fik->dq_weight_all(fik->m_robot->link("CHEST_JOINT1")->jointId) = 1e3;
     if( fik->m_robot->link("CHEST_JOINT2") != NULL) fik->dq_weight_all(fik->m_robot->link("CHEST_JOINT2")->jointId) = 1e2;
-    // if( fik->m_robot->link("LARM_JOINT0") != NULL) fik->dq_weight_all(fik->m_robot->link("LARM_JOINT0")->jointId) = 1;
-    // if( fik->m_robot->link("RARM_JOINT0") != NULL) fik->dq_weight_all(fik->m_robot->link("RARM_JOINT0")->jointId) = 1;
+    if( fik->m_robot->link("LARM_JOINT0") != NULL) fik->dq_weight_all(fik->m_robot->link("LARM_JOINT0")->jointId) = 1e2;
+    if( fik->m_robot->link("RARM_JOINT0") != NULL) fik->dq_weight_all(fik->m_robot->link("RARM_JOINT0")->jointId) = 1e2;
     // if( fik->m_robot->link("LARM_JOINT4") != NULL) fik->dq_weight_all(fik->m_robot->link("LARM_JOINT4")->jointId) = 1;
     // if( fik->m_robot->link("RARM_JOINT4") != NULL) fik->dq_weight_all(fik->m_robot->link("RARM_JOINT4")->jointId) = 1;
     // if( fik->m_robot->link("LARM_JOINT6") != NULL) fik->dq_weight_all(fik->m_robot->link("LARM_JOINT6")->jointId) = 1;
