@@ -19,7 +19,7 @@ class MasterConfigurator(HrpsysConfigurator):
             ['seq', "SequencePlayer"],
             ['sh', "StateHolder"],
             ['fk', "ForwardKinematics"],
-            ['kf', "KalmanFilter"],
+            # ['kf', "KalmanFilter"],
             ['rmfo', "RemoveForceSensorLinkOffset"],
             ['hc', "HapticController"],
             ['log', "DataLogger"]
