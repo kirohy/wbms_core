@@ -454,7 +454,7 @@ void HapticController::calcTorque(){
         if(ee == "lleg" || ee == "rleg" ){ slave_w_raw.tail(4).fill(0); }// disable Fz Tx Ty Tz
         const hrp::dvector6 slave_w_hp = slave_w_raw - wrench_lpf_for_hpf[ee].passFilter( slave_w_raw );
         const hrp::dvector6 slave_w_lp = wrench_lpf[ee].passFilter( slave_w_raw );
-        const hrp::dvector6 slave_w_shaped = slave_w_raw * hcp.force_feedback_ratio 
+        const hrp::dvector6 slave_w_shaped = slave_w_raw * hcp.force_feedback_ratio[ee]
                                             + slave_w_hp * hcp.wrench_hpf_gain 
                                             + slave_w_lp * hcp.wrench_lpf_gain;
 
@@ -654,7 +654,6 @@ bool HapticController::setParams(const OpenHRP::HapticControllerService::HapticC
     hcp.ex_gravity_compensation_ratio_lower = i_param.ex_gravity_compensation_ratio_lower;
     hcp.ex_gravity_compensation_ratio_upper = i_param.ex_gravity_compensation_ratio_upper;
     hcp.foot_min_distance                   = i_param.foot_min_distance;
-    hcp.force_feedback_ratio                = i_param.force_feedback_ratio;
     hcp.gravity_compensation_ratio          = i_param.gravity_compensation_ratio;
     hcp.q_friction_coeff                    = i_param.q_friction_coeff;
     hcp.q_ref_max_torque_ratio              = i_param.q_ref_max_torque_ratio;
@@ -672,6 +671,7 @@ bool HapticController::setParams(const OpenHRP::HapticControllerService::HapticC
         for(int j=0;j<6;j++){
             hcp.ex_ee_ref_wrench[ee_names[i]](j) =  i_param.ex_ee_ref_wrench[i][j];
         }
+        hcp.force_feedback_ratio[ee_names[i]] = i_param.force_feedback_ratio[i];
     }
     hcp.CheckSafeLimit();
     ///// update process if required
@@ -692,7 +692,9 @@ bool HapticController::setParams(const OpenHRP::HapticControllerService::HapticC
     RTC_INFO_STREAM("  ex_gravity_compensation_ratio_lower = " << hcp.ex_gravity_compensation_ratio_lower);
     RTC_INFO_STREAM("  ex_gravity_compensation_ratio_upper = " << hcp.ex_gravity_compensation_ratio_upper);
     RTC_INFO_STREAM("  foot_min_distance = " << hcp.foot_min_distance);
-    RTC_INFO_STREAM("  force_feedback_ratio = " << hcp.force_feedback_ratio);
+    for (int i = 0; i < ee_names.size(); i++) {
+        RTC_INFO_STREAM("  force_feedback_ratio[" << ee_names[i] << "] = " << hcp.force_feedback_ratio[ee_names[i]]);
+    }
     RTC_INFO_STREAM("  gravity_compensation_ratio = " << hcp.gravity_compensation_ratio);
     RTC_INFO_STREAM("  q_friction_coeff = " << hcp.q_friction_coeff);
     RTC_INFO_STREAM("  q_ref_max_torque_ratio = " << hcp.q_ref_max_torque_ratio);
@@ -727,7 +729,6 @@ bool HapticController::getParams(OpenHRP::HapticControllerService::HapticControl
     i_param.ex_gravity_compensation_ratio_lower = hcp.ex_gravity_compensation_ratio_lower;
     i_param.ex_gravity_compensation_ratio_upper = hcp.ex_gravity_compensation_ratio_upper;
     i_param.foot_min_distance                   = hcp.foot_min_distance;
-    i_param.force_feedback_ratio                = hcp.force_feedback_ratio;
     i_param.gravity_compensation_ratio          = hcp.gravity_compensation_ratio;
     i_param.q_friction_coeff                    = hcp.q_friction_coeff;
     i_param.q_ref_max_torque_ratio              = hcp.q_ref_max_torque_ratio;
@@ -742,12 +743,14 @@ bool HapticController::getParams(OpenHRP::HapticControllerService::HapticControl
     i_param.force_feedback_limit_ft             = hrp::to_DblSequence2(hcp.force_feedback_limit_ft);
     i_param.q_ref_pd_gain                       = hrp::to_DblSequence2(hcp.q_ref_pd_gain);
 
+    i_param.force_feedback_ratio.length(6);
     i_param.ex_ee_ref_wrench.length(6);
     for (int i=0; i<ee_names.size(); i++){//順番気をつけないと危険．confファイルに書いたend_effectorの順
         i_param.ex_ee_ref_wrench[i].length(6);
         for(int j=0;j<ft_xyz;j++){
             i_param.ex_ee_ref_wrench[i][j] = hcp.ex_ee_ref_wrench[ee_names[i]](j);
         }
+        i_param.force_feedback_ratio[i] = hcp.force_feedback_ratio[ee_names[i]];
     }
     return true;
 }

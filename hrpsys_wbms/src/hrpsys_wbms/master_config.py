@@ -82,7 +82,7 @@ class MasterConfigurator(HrpsysConfigurator):
         print("set virtual floor")
         hp = self.hc_svc.getParams()
         hp.baselink_height_from_floor=0.8
-        hp.force_feedback_ratio=0.1
+        hp.force_feedback_ratio=[0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
         hp.torque_feedback_ratio=0
         hp.wrench_hpf_gain=0.0
         hp.q_ref_max_torque_ratio=0.01

@@ -144,7 +144,7 @@ class HapticController : public RTC::DataFlowComponentBase{
                 double ex_gravity_compensation_ratio_lower;
                 double ex_gravity_compensation_ratio_upper;
                 double foot_min_distance;
-                double force_feedback_ratio;
+                std::map<std::string, double> force_feedback_ratio;
                 double gravity_compensation_ratio;
                 double q_friction_coeff;
                 double q_ref_max_torque_ratio;
@@ -166,7 +166,12 @@ class HapticController : public RTC::DataFlowComponentBase{
                 ex_gravity_compensation_ratio_lower = 1.0;
                 ex_gravity_compensation_ratio_upper = 0.9;
                 foot_min_distance                   = 0.25;
-                force_feedback_ratio                = 0.1;
+                force_feedback_ratio["rleg"]        = 0.1;
+                force_feedback_ratio["lleg"]        = 0.1;
+                force_feedback_ratio["rarm"]        = 0.1;
+                force_feedback_ratio["larm"]        = 0.1;
+                force_feedback_ratio["relbow"]      = 0.1;
+                force_feedback_ratio["lelbow"]      = 0.1;
                 gravity_compensation_ratio          = 1.0;
                 q_friction_coeff                    = 0;
                 q_ref_max_torque_ratio              = 0.01;
@@ -184,6 +189,8 @@ class HapticController : public RTC::DataFlowComponentBase{
                 ex_ee_ref_wrench["lleg"]            = hrp::dvector6::Zero();
                 ex_ee_ref_wrench["rarm"]            = hrp::dvector6::Zero();
                 ex_ee_ref_wrench["larm"]            = hrp::dvector6::Zero();
+                ex_ee_ref_wrench["relbow"]          = hrp::dvector6::Zero();
+                ex_ee_ref_wrench["lelbow"]          = hrp::dvector6::Zero();
                 CheckSafeLimit();
             }
             void CheckSafeLimit(){
@@ -193,7 +200,12 @@ class HapticController : public RTC::DataFlowComponentBase{
                 LIMIT_MINMAX(ex_gravity_compensation_ratio_lower , -1, 2);
                 LIMIT_MINMAX(ex_gravity_compensation_ratio_upper , -1, 2);
                 LIMIT_MINMAX(foot_min_distance                   , 0, 1);
-                LIMIT_MINMAX(force_feedback_ratio                , 0, 2);
+                LIMIT_MINMAX(force_feedback_ratio["rleg"]        , 0, 2);
+                LIMIT_MINMAX(force_feedback_ratio["lleg"]        , 0, 2);
+                LIMIT_MINMAX(force_feedback_ratio["rarm"]        , 0, 2);
+                LIMIT_MINMAX(force_feedback_ratio["larm"]        , 0, 2);
+                LIMIT_MINMAX(force_feedback_ratio["relbow"]      , 0, 2);
+                LIMIT_MINMAX(force_feedback_ratio["lelbow"]      , 0, 2);
                 LIMIT_MINMAX(gravity_compensation_ratio          , 0, 2);
                 LIMIT_MINMAX(q_friction_coeff                    , 0, 10);
                 LIMIT_MINMAX(q_ref_max_torque_ratio              , 0, 2);
